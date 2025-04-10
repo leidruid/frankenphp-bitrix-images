@@ -1,0 +1,2 @@
+# frankenphp-bitrix-images
+
