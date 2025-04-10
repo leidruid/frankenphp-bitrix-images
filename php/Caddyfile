@@ -1,0 +1,49 @@
+{
+    log default {
+          output stdout
+          level DEBUG
+    }
+    frankenphp
+}
+
+:8080 {
+    root * public/
+    encode zstd br gzip
+    #php_server
+	php
+	file_server
+
+	# Кэш для изображений из resize_cache
+	@cachedFiles {
+		path_regexp cached ^/upload/resize_cache/.+\.(?:png|jpe?g|gif|webp)$
+	}
+	header @cachedFiles Cache-Control "public, max-age=31536000, immutable"
+
+	# 1. Если запрашивают каталог → пробуем index.php в нём
+	@dirWithIndex {
+		file {
+			try_files {path}/index.php
+		}
+	}
+	rewrite @dirWithIndex {path}/index.php
+
+	# 2. Если файл не найден — отдаём urlrewrite.php
+	@rewrite {
+		not file
+		not path /bitrix/urlrewrite.php
+	}
+	rewrite @rewrite /bitrix/urlrewrite.php
+
+	# 3. Обработка 404 → index.php (страховка)
+	handle_errors {
+		@notfound expression {http.error.status_code} == 404
+		rewrite @notfound /index.php
+	}
+
+	# Блокировка конфигов
+	@blocked {
+		path /bitrix/php_interface/dbconn.php
+		path /bitrix/.settings.php
+	}
+	respond @blocked 403
+}

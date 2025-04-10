@@ -1,0 +1,2 @@
+php: /usr/local/bin/frankenphp run --config /etc/caddy/Caddyfile --adapter caddyfile
+cron: /usr/local/bin/supercronic -inotify /app/crontab
