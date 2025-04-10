@@ -1,12 +1,23 @@
-FROM debian:bookworm-slim
+FROM alpine:latest
 
-RUN apt-get update && \
-    apt-get install -y proftpd-basic openssh-client && \
-    mkdir -p /etc/proftpd /var/log/proftpd /app && \
-    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa && \
-    ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N '' -t ed25519
+RUN apk update && apk add --no-cache \
+  proftpd \
+  proftpd-mod_sftp \
+  proftpd-utils \
+  openssh-client \
+  openssl \
+  bash \
+  && rm -rf /var/cache/apk/*
 
-COPY proftpd.conf /etc/proftpd/proftpd.conf
+RUN mkdir -p /app \
+  && rm -rf /etc/proftpd/* \
+  && mkdir -p /run/proftpd \
+  && chown proftpd:proftpd /run/proftpd \
+  && ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' \
+  && ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' \
+  && ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
+
+COPY proftpd.conf /etc/proftpd.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
