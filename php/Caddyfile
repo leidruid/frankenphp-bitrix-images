@@ -13,6 +13,9 @@
 	php
 	file_server
 
+    @git path /.git*
+    respond @git "403 Forbidden" 403
+
 	# Кэш для изображений из resize_cache
 	@cachedFiles {
 		path_regexp cached ^/upload/resize_cache/.+\.(?:png|jpe?g|gif|webp)$
